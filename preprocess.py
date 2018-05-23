@@ -80,12 +80,3 @@ for i in range(n_windows):
         plt.plot(frequencies)
         plt.show()
         """
-
-"""
-# Wyznaczamy obwiednią sygnału
-signal_envelope = np.sum([(
-    np.abs(np.mean(windows[i]) - np.mean(windows[i - 1])))/(n_windows - 1)
-    for i in range(2, n_windows)
-])
-print('calculated {}'.format(signal_envelope))
-"""
