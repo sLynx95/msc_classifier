@@ -5,6 +5,10 @@
 import numpy as np
 from scipy.io import wavfile
 from scipy.fftpack import fft
+<<<<<<< HEAD
+=======
+from matplotlib import pyplot as plt
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
 
 # Podajemy sciezke do pliku wav
 filename = 'wav/Three_Days_Grace-The_Mountain.wav'
@@ -12,6 +16,11 @@ filename = 'wav/Three_Days_Grace-The_Mountain.wav'
 # Wczytujemy plik wav
 sample_rate, stereo_sound = wavfile.read(filename)
 
+<<<<<<< HEAD
+=======
+print(sample_rate)
+
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
 # Spłaszczamy dźwięk do mono
 mono_sound = np.mean(stereo_sound, axis=1)
 
@@ -34,32 +43,47 @@ mono_sound = mono_sound[:n_windows * window_length]
 # Przekształcamy audio na reprezentację z oknami w wierszach i próbkami
 # w kolumnach
 windows = mono_sound.reshape((n_windows, -1))
+<<<<<<< HEAD
 
 # Ilość próbek utworu
 samples = np.shape(windows[-1])
 n_samples = samples[0]
+=======
+# print(np.shape(windows))
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
 
 # Iterujemy kolejne okna
 for i in range(n_windows):
     # Pobieramy okno
     window = windows[i, :]
 
+<<<<<<< HEAD
     # Wliczamy średnią z okna
     mean_of_window = np.mean(window)
 
     # Wyliczamy odchylenie standarowe dla okna
     stdeviation = np.std(window)
+=======
+    # Dla przykładu wyliczamy i wyświetlamy średnią z okna
+    mean_of_window = np.mean(window)
+    # print(mean_of_window)
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
 
     # Wyliczamy szybka transformate fouriera dla okna
     fft_from_window = fft(window)
 
+<<<<<<< HEAD
     # Z FFT wyliczmy czestotliwości dla okna
+=======
+    # Z FFT wyliczmy czestotliwości
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
     frequencies = np.abs(fft_from_window)
 
     # Wyliczamy szerokosc pasma dla okna
     bandwidth_of_window = np.max(frequencies) - np.min(frequencies)
     # print(bandwidth_of_window)
 
+<<<<<<< HEAD
     # Wyznaczamy czestotliwość dominującą
     if np.max(window):
         pervasive_freq = frequencies[i]
@@ -71,6 +95,8 @@ for i in range(n_windows):
     signal_envelope = np.sum([(np.abs(np.mean(windows[i]) - np.mean(windows[i - 1]))) / (n_windows - 1)
                                 for i in range(2, n_windows)])
     """
+=======
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
     # Dla pierwszego i drugiego okna rysujemy wykres przebiegu w czasie oraz częstotliwości
     if i == 0 or i == 1:
         fig = plt.figure(dpi=128, figsize=(10, 6))
@@ -79,4 +105,7 @@ for i in range(n_windows):
         plt.subplot(2, 1, 2)
         plt.plot(frequencies)
         plt.show()
+<<<<<<< HEAD
         """
+=======
+>>>>>>> 47f43859a4fee40cf54ff83571b73d6e02a4f91a
