@@ -5,6 +5,7 @@
 import numpy as np
 from scipy.io import wavfile
 from scipy.fftpack import fft
+from pandas import DataFrame
 
 # Podajemy sciezke do pliku wav
 filename = 'wav/Three_Days_Grace-The_Mountain.wav'
@@ -39,6 +40,10 @@ windows = mono_sound.reshape((n_windows, -1))
 samples = np.shape(windows[-1])
 n_samples = samples[0]
 
+# Listy na cechy okien: (szerokość pasma, czestotliwość dominujaca, moc, obwiednia)
+bandwidths, pervasives_freq, signal_strengths, signal_envelopes = [], [], [], []
+name_features = np.array(['bandwidth', 'pervasive_freq', 'signal_strength', 'signal_envelope'])
+
 # Iterujemy kolejne okna
 for i in range(n_windows):
     # Pobieramy okno
@@ -51,26 +56,32 @@ for i in range(n_windows):
     stdeviation = np.std(window)
 
     # Wyliczamy szybka transformate fouriera dla okna
-    fft_from_window = fft(window)
+    fft_from_window = np.array(fft(window))
+
+    # Potencjalne wykorzystanie filtracji medianowej/gaussowskiej
 
     # Z FFT wyliczmy czestotliwości dla okna
     frequencies = np.abs(fft_from_window)
 
     # Wyliczamy szerokosc pasma dla okna
-    bandwidth_of_window = np.max(frequencies) - np.min(frequencies)
+    bandwidth = np.max(frequencies) - np.min(frequencies)
+    bandwidths.append(bandwidth)
 
     # Wyznaczamy czestotliwość dominującą
     if np.max(window):
         pervasive_freq = frequencies[i]
+        pervasives_freq.append(pervasive_freq)
 
     # Wyznaczamy moc sygnału
     signal_strength = np.sum(frequencies)
+    signal_strengths.append(signal_strength)
 
-    # Wyznaczamy obwiednią sygnału
+    # Wyznaczamy obwiednią sygnału dla okna (z 100 pod okien)
     signal_envelope = np.sum([
-        (np.abs(np.mean(windows[i]) - np.mean(windows[i - 1]))) / (n_windows - 1)
-        for i in range(2, n_windows)
+        (np.abs(np.mean(window[i]) - np.mean(window[i - 1]))) / (100 - 1)
+        for i in range(1, 100)
         ])
+    signal_envelopes.append(signal_envelope)
     """
     # Dla pierwszego i drugiego okna rysujemy wykres przebiegu w czasie oraz częstotliwości
     if i == 0 or i == 1:
@@ -81,3 +92,7 @@ for i in range(n_windows):
         plt.plot(frequencies)
         plt.show()
     """
+
+features = DataFrame(np.transpose(np.array([
+    bandwidths, pervasives_freq, signal_strengths, signal_envelopes])), columns=name_features)
+features.to_csv('Mountain.csv')
