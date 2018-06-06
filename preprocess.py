@@ -27,6 +27,7 @@ FILES = [f for f in listdir('mp3') if isfile(join('mp3/', f))]
 # Petla po wszytkich utworach
 for file in FILES:
     # Konwersja na format wav
+    print('Converting %s' % file)
     sound = AudioSegment.from_mp3("mp3/%s" % file)
     sound.export("wav/%s.wav" % file.split('.')[0], format="wav")
 
@@ -37,6 +38,7 @@ for file in FILES:
     sample_rate, stereo_sound = wavfile.read(wave_file)
 
     # Spłaszczamy dźwięk do mono
+    print('Preprocessing %s' % file)
     mono_sound = np.mean(stereo_sound, axis=1)
 
     # Pobieramy sumaryczną długość strumienia audio
@@ -65,6 +67,7 @@ for file in FILES:
     bandwidths, pervasives_freq, signal_strengths, signal_envelopes = [], [], [], []
     name_features = np.array(['bandwidth', 'pervasive_freq', 'signal_strength', 'signal_envelope'])
 
+    print('Extraction features of %s' % file)
     # Iterujemy kolejne okna
     for i in range(n_windows):
         # Pobieramy okno
@@ -126,9 +129,11 @@ for file in FILES:
         song_dataset = single_song.join(features, how='right')
 
         # Zapis do zmiennej każdej kolejnej kombinacji utwór-cechy
+        print('Creating dataset  of %s' % file)
         FULL_DATASET = FULL_DATASET.append(song_dataset)
 
         # Usunięcie pliku .wave
+        print('Deleting wave file')
         remove("wav/%s.wav" % file.split('.')[0])
 
 # Zapis pełnego datasetu do .csv
