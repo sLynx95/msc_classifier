@@ -2,29 +2,32 @@
 
 """Przetwarzanie wstępne i ekstrakcja cech utworów muzycznych"""
 
-import numpy as np
+from os import listdir, remove
+from os.path import isfile, join
+from pydub import AudioSegment
 from scipy.io import wavfile
 from scipy.fftpack import fft
-from pandas import DataFrame, read_csv, concat
-from pydub import AudioSegment
-from os import listdir
-from os.path import isfile, join
+from pandas import DataFrame, read_csv
+import pandas as pd
+import numpy as np
+
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 
 # Lista na połączenie utworów z cechami
-full_dataset = DataFrame(np.array([]))
+FULL_DATASET = DataFrame(np.array([]))
 
 # Ładujemy zbiór utwór - gatunek
-dataset = read_csv('song_dataset.csv')
-dataset_noIndex = dataset.set_index('song')
-amount_songs = dataset_noIndex.size
+DATASET = read_csv('song_dataset.csv')
+DATASET_IDX = DATASET.set_index('idx')
 
 # Tworzymy listę utworów z folderu, format mp3
-files = [f for f in listdir('samplemp3') if isfile(join('samplemp3/', f))]
+FILES = [f for f in listdir('mp3') if isfile(join('mp3/', f))]
 
 # Petla po wszytkich utworach
-for file in files:
+for file in FILES:
     # Konwersja na format wav
-    sound = AudioSegment.from_mp3("samplemp3/%s" % file)
+    sound = AudioSegment.from_mp3("mp3/%s" % file)
     sound.export("wav/%s.wav" % file.split('.')[0], format="wav")
 
     # Podajemy sciezke do pliku wav
@@ -35,7 +38,7 @@ for file in files:
 
     # Spłaszczamy dźwięk do mono
     mono_sound = np.mean(stereo_sound, axis=1)
-    
+
     # Pobieramy sumaryczną długość strumienia audio
     sound_length = len(mono_sound)
 
@@ -50,7 +53,6 @@ for file in files:
 
     # Przycinamy dźwięk do pełnych okien
     mono_sound = mono_sound[:n_windows * window_length]
-    # print(np.shape(mono_sound))
 
     # Przekształcamy audio na reprezentację z oknami w wierszach i próbkamicw kolumnach
     windows = mono_sound.reshape((n_windows, -1))
@@ -101,8 +103,7 @@ for file in files:
             for i in range(1, 100)
             ])
         signal_envelopes.append(signal_envelope)
-
-        """
+    """        
         # Dla pierwszego i drugiego okna rysujemy wykres przebiegu w czasie oraz częstotliwości
         if i == 0 or i == 1:
             fig = plt.figure(dpi=128, figsize=(10, 6))
@@ -111,15 +112,24 @@ for file in files:
             plt.subplot(2, 1, 2)
             plt.plot(frequencies)
             plt.show()
-        """
+    """
     features = DataFrame(np.transpose(np.array([
         bandwidths, pervasives_freq, signal_strengths, signal_envelopes])),
-        columns=name_features)
-    # features.to_csv('Mountain.csv')
-    if any(dataset['song'] == file):
-        single_song = DataFrame(dataset_noIndex.loc[[file], ['idx', 'genre']])
-        # single_song.join(features, lsuffix='_single_song', rsuffix='_features')
-        song_dataset = concat([single_song, features])
-    # full_dataset.append(song_dataset)
+                         columns=name_features)
 
-# full_dataset.to_csv('full_dataset.csv')
+    if any(DATASET['song'] == file):
+        # Wyciągnięcie odpowiedniego wiersza z song_dataset i obróbka
+        single_song = DataFrame(DATASET_IDX.loc[DATASET['song'] == file])
+        single_song = single_song.reset_index(drop=True)
+
+        # Połączenie utworu z cechami
+        song_dataset = single_song.join(features, how='right')
+
+        # Zapis do zmiennej każdej kolejnej kombinacji utwór-cechy
+        FULL_DATASET = FULL_DATASET.append(song_dataset)
+
+        # Usunięcie pliku .wave
+        remove("wav/%s.wav" % file.split('.')[0])
+
+# Zapis pełnego datasetu do .csv
+FULL_DATASET.to_csv('full_dataset.csv')
