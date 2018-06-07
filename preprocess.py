@@ -39,7 +39,10 @@ for file in FILES:
 
     # Spłaszczamy dźwięk do mono
     print('Preprocessing %s' % file)
-    mono_sound = np.mean(stereo_sound, axis=1)
+    if sound.channels == 2:
+        mono_sound = np.mean(stereo_sound, axis=1)
+    else:
+        mono_sound = stereo_sound
 
     # Pobieramy sumaryczną długość strumienia audio
     sound_length = len(mono_sound)
@@ -89,7 +92,8 @@ for file in FILES:
 
         # Wyliczamy szerokosc pasma dla okna
         bandwidth = np.max(frequencies) - np.min(frequencies)
-        bandwidths.append(bandwidth)
+        if bandwidth:
+            bandwidths.append(bandwidth)
 
         # Wyznaczamy czestotliwość dominującą
         if np.max(window):
@@ -98,14 +102,16 @@ for file in FILES:
 
         # Wyznaczamy moc sygnału
         signal_strength = np.sum(frequencies)
-        signal_strengths.append(signal_strength)
+        if signal_strength:
+            signal_strengths.append(signal_strength)
 
         # Wyznaczamy obwiednią sygnału dla okna (z 100 pod okien)
-        signal_envelope = np.sum([
-            (np.abs(np.mean(window[i]) - np.mean(window[i - 1]))) / (100 - 1)
-            for i in range(1, 100)
-            ])
-        signal_envelopes.append(signal_envelope)
+        if np.max(frequencies):
+            signal_envelope = np.sum([
+                (np.abs(np.mean(window[i]) - np.mean(window[i - 1]))) / (100 - 1)
+                for i in range(1, 100)
+                ])
+            signal_envelopes.append(signal_envelope)
     """        
         # Dla pierwszego i drugiego okna rysujemy wykres przebiegu w czasie oraz częstotliwości
         if i == 0 or i == 1:
