@@ -16,15 +16,15 @@ from tqdm import tqdm
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-FILE_NAME = 'three_genre_dataset.csv'
+FILE_NAME = 'datasets/dataset_GZN_PCA_standardized.csv'
 
 # Czytamy CSV i dokonujemy podziału na cechy i etykiety
 df = pd.read_csv(FILE_NAME)
 data = df.values
 # Ustawiono częściowy zbiór
-X = np.float_(np.array(data[:, 2:]))
-y = np.float_(np.array(data[:, 1]))
-print(X.shape, y.shape)
+X = np.array(data[:, :4])
+y = np.array(data[:, 5])
+# print(X.shape, y.shape)
 
 # Hiperparametry dla SVM
 svm_params = {'probability': [True], 'C': [1.0, 10.0, 100.0, 1000.0]}
@@ -32,8 +32,8 @@ svm_params = {'probability': [True], 'C': [1.0, 10.0, 100.0, 1000.0]}
 kNN_params = {'n_neighbors': [1, 3, 5, 7, 10]}
 search = [model_selection.GridSearchCV(svm.SVC(), svm_params, cv=None),
             model_selection.GridSearchCV(neighbors.KNeighborsClassifier(), kNN_params, cv=None)]
-# 10-foldowa walidacja krzyżowa
-k = 10
+# 30-foldowa walidacja krzyżowa
+k = 30
 cv = model_selection.StratifiedKFold(n_splits=k)
 results = []
 for train, test in tqdm(cv.split(X, y), desc='Execute by folds', total=k):
@@ -71,7 +71,7 @@ print('Average accuracy of classifiers:')
 for name in names:
     mean = np.mean(datas.loc[:, name])
     means.append(mean)
-    print('\t', name, ': %.3f' % mean)
+    print('\t', name, ': %.2f' % (mean * 100), '%')
 max_acc = max(means)
 avg_acc = {names[0]: [means[0], 0], names[1]: [means[1], 1],
            names[2]: [means[2], 2], names[3]: [means[3], 3]}
